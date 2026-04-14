@@ -1,8 +1,12 @@
 package com.example.weatherapp
 
+import android.Manifest
+import android.app.TimePickerDialog
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,17 +15,20 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.TimePicker
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.URLEncoder
-import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 import java.util.concurrent.ExecutorService
@@ -41,9 +48,16 @@ class MainActivity : AppCompatActivity() {
     private val ioExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    private val preferences by lazy {
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-    }
+    private val requestNotificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                WeatherNotificationScheduler.scheduleDaily(this)
+            } else {
+                WeatherPrefs.setNotificationEnabled(this, false)
+                WeatherNotificationScheduler.cancelDaily(this)
+                notifyError(AppErrorType.NOTIFICATION_PERMISSION_DENIED)
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +80,10 @@ class MainActivity : AppCompatActivity() {
             showSettingsDialog(force = false)
         }
 
+        if (WeatherPrefs.isNotificationEnabled(this)) {
+            ensureNotificationPermissionAndSchedule()
+        }
+
         val savedCity = getSavedCity()
         if (savedCity.isBlank()) {
             showSettingsDialog(force = true)
@@ -85,10 +103,42 @@ class MainActivity : AppCompatActivity() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
         val cityInput = dialogView.findViewById<EditText>(R.id.cityInput)
         val unitGroup = dialogView.findViewById<RadioGroup>(R.id.unitGroup)
+        val notificationsSwitch = dialogView.findViewById<SwitchCompat>(R.id.notificationsSwitch)
+        val notificationTimeButton = dialogView.findViewById<Button>(R.id.notificationTimeButton)
 
         cityInput.setText(getSavedCity())
         val savedUnit = getSavedUnit()
-        unitGroup.check(if (savedUnit == UNIT_FAHRENHEIT) R.id.unitFahrenheit else R.id.unitCelsius)
+        unitGroup.check(if (savedUnit == WeatherPrefs.UNIT_FAHRENHEIT) R.id.unitFahrenheit else R.id.unitCelsius)
+
+        var selectedHour = WeatherPrefs.getNotificationHour(this)
+        var selectedMinute = WeatherPrefs.getNotificationMinute(this)
+        notificationsSwitch.isChecked = WeatherPrefs.isNotificationEnabled(this)
+        notificationTimeButton.isEnabled = notificationsSwitch.isChecked
+
+        fun renderTimeLabel() {
+            val label = formatHourMinute(selectedHour, selectedMinute)
+            notificationTimeButton.text = getString(R.string.settings_notification_time, label)
+        }
+
+        renderTimeLabel()
+
+        notificationsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            notificationTimeButton.isEnabled = isChecked
+        }
+
+        notificationTimeButton.setOnClickListener {
+            TimePickerDialog(
+                this,
+                { _: TimePicker, hour: Int, minute: Int ->
+                    selectedHour = hour
+                    selectedMinute = minute
+                    renderTimeLabel()
+                },
+                selectedHour,
+                selectedMinute,
+                true
+            ).show()
+        }
 
         val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.settings_title)
@@ -111,23 +161,48 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val selectedUnit = if (unitGroup.checkedRadioButtonId == R.id.unitFahrenheit) {
-                    UNIT_FAHRENHEIT
+                    WeatherPrefs.UNIT_FAHRENHEIT
                 } else {
-                    UNIT_CELSIUS
+                    WeatherPrefs.UNIT_CELSIUS
                 }
 
-                preferences.edit()
-                    .putString(KEY_CITY, city)
-                    .putString(KEY_UNIT, selectedUnit)
-                    .apply()
+                WeatherPrefs.setCity(this, city)
+                WeatherPrefs.setUnit(this, selectedUnit)
+                WeatherPrefs.setNotificationEnabled(this, notificationsSwitch.isChecked)
+                WeatherPrefs.setNotificationTime(this, selectedHour, selectedMinute)
+
+                if (notificationsSwitch.isChecked) {
+                    ensureNotificationPermissionAndSchedule()
+                } else {
+                    WeatherNotificationScheduler.cancelDaily(this)
+                }
 
                 locationText.text = getString(R.string.location_label, city)
                 loadWeatherForCurrentSettings()
+                WeatherWidgetProvider.refreshAll(this)
                 dialog.dismiss()
             }
         }
 
         dialog.show()
+    }
+
+    private fun ensureNotificationPermissionAndSchedule() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            WeatherNotificationScheduler.scheduleDaily(this)
+            return
+        }
+
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (granted) {
+            WeatherNotificationScheduler.scheduleDaily(this)
+        } else {
+            requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     private fun loadWeatherForCurrentSettings() {
@@ -143,7 +218,7 @@ class MainActivity : AppCompatActivity() {
 
         statusText.text = getString(R.string.status_loading)
         locationText.text = getString(R.string.location_label, city)
-        val useFahrenheit = getSavedUnit() == UNIT_FAHRENHEIT
+        val useFahrenheit = getSavedUnit() == WeatherPrefs.UNIT_FAHRENHEIT
 
         ioExecutor.execute {
             val geocodeResult = geocodeCity(city)
@@ -184,6 +259,7 @@ class MainActivity : AppCompatActivity() {
                 windText.text = windString
                 statusText.text = getString(R.string.status_updated)
                 applyWeatherVisuals(weatherCode)
+                WeatherWidgetProvider.refreshAll(this)
             }
         }
     }
@@ -225,7 +301,7 @@ class MainActivity : AppCompatActivity() {
                     GeoResult(displayName = displayName, latitude = latitude, longitude = longitude)
                 )
             }
-        } catch (_: UnknownHostException) {
+        } catch (_: java.net.UnknownHostException) {
             GeoLookupResult.Error(AppErrorType.NO_INTERNET)
         } catch (_: SocketTimeoutException) {
             GeoLookupResult.Error(AppErrorType.REQUEST_TIMEOUT)
@@ -270,7 +346,7 @@ class MainActivity : AppCompatActivity() {
                     windSpeed = wind
                 )
             )
-        } catch (_: UnknownHostException) {
+        } catch (_: java.net.UnknownHostException) {
             WeatherLoadResult.Error(AppErrorType.NO_INTERNET)
         } catch (_: SocketTimeoutException) {
             WeatherLoadResult.Error(AppErrorType.REQUEST_TIMEOUT)
@@ -296,12 +372,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getSavedCity(): String {
-        return preferences.getString(KEY_CITY, "").orEmpty()
-    }
+    private fun getSavedCity(): String = WeatherPrefs.getCity(this)
 
-    private fun getSavedUnit(): String {
-        return preferences.getString(KEY_UNIT, UNIT_CELSIUS).orEmpty()
+    private fun getSavedUnit(): String = WeatherPrefs.getUnit(this)
+
+    private fun formatHourMinute(hour: Int, minute: Int): String {
+        return String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
     }
 
     private fun applyWeatherVisuals(code: Int) {
@@ -371,14 +447,10 @@ class MainActivity : AppCompatActivity() {
         CITY_NOT_FOUND(
             statusRes = R.string.status_city_not_found,
             messageRes = R.string.error_city_not_found
+        ),
+        NOTIFICATION_PERMISSION_DENIED(
+            statusRes = R.string.status_notifications_disabled,
+            messageRes = R.string.error_notification_permission
         )
-    }
-
-    companion object {
-        private const val PREFS_NAME = "weather_prefs"
-        private const val KEY_CITY = "city"
-        private const val KEY_UNIT = "unit"
-        private const val UNIT_CELSIUS = "celsius"
-        private const val UNIT_FAHRENHEIT = "fahrenheit"
     }
 }

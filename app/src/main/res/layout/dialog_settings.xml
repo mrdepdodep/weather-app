@@ -34,4 +34,18 @@
             android:layout_height="wrap_content"
             android:text="@string/unit_fahrenheit" />
     </RadioGroup>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/notificationsSwitch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="@string/settings_notifications_daily" />
+
+    <Button
+        android:id="@+id/notificationTimeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/settings_pick_time" />
 </LinearLayout>
