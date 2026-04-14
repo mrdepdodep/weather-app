@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Weather</string>
+    <string name="title_weather">Current Weather</string>
+    <string name="refresh">Refresh</string>
+    <string name="status_waiting">Waiting for location…</string>
+    <string name="status_loading">Updating…</string>
+    <string name="status_no_permission">Location denied</string>
+    <string name="status_failed_location">Location failed</string>
+    <string name="status_failed_weather">Request failed</string>
+    <string name="status_updated">Updated</string>
+    <string name="location_placeholder">Detecting location…</string>
+    <string name="weather_placeholder">—</string>
+    <string name="wind_label">Wind</string>
+    <string name="status_label">Status</string>
+</resources>
