@@ -28,6 +28,19 @@
             android:fontFamily="sans-serif-medium"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/settingsButton" />
+
+        <ImageButton
+            android:id="@+id/settingsButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/settings_title"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_manage"
+            android:tint="#94A3B8"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/titleText"
             app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Location coordinates -->

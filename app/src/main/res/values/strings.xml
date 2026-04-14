@@ -3,16 +3,21 @@
     <string name="app_name">Weather</string>
     <string name="title_weather">Current Weather</string>
     <string name="refresh">Refresh</string>
-    <string name="status_waiting">Waiting for location…</string>
+    <string name="status_waiting">Enter a city to start</string>
     <string name="status_loading">Updating…</string>
-    <string name="status_no_permission">Location denied</string>
-    <string name="status_failed_location">Location failed</string>
-    <string name="status_location_disabled">Turn on location services (GPS)</string>
-    <string name="status_fetching_fix">Getting accurate location…</string>
     <string name="status_failed_weather">Request failed</string>
+    <string name="status_city_not_found">City not found</string>
     <string name="status_updated">Updated</string>
-    <string name="location_placeholder">Detecting location…</string>
+    <string name="location_placeholder">📍 —</string>
+    <string name="location_label">📍 %1$s</string>
     <string name="weather_placeholder">—</string>
     <string name="wind_label">Wind</string>
     <string name="status_label">Status</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_city_hint">Enter city</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_cancel">Cancel</string>
+    <string name="settings_city_required">City is required</string>
+    <string name="unit_celsius">Celsius (°C)</string>
+    <string name="unit_fahrenheit">Fahrenheit (°F)</string>
 </resources>
