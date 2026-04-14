@@ -7,6 +7,8 @@
     <string name="status_loading">Updating…</string>
     <string name="status_no_permission">Location denied</string>
     <string name="status_failed_location">Location failed</string>
+    <string name="status_location_disabled">Turn on location services (GPS)</string>
+    <string name="status_fetching_fix">Getting accurate location…</string>
     <string name="status_failed_weather">Request failed</string>
     <string name="status_updated">Updated</string>
     <string name="location_placeholder">Detecting location…</string>

@@ -3,7 +3,10 @@ package com.example.weatherapp
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,6 +14,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -33,10 +39,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var weatherIconText: TextView
     private lateinit var refreshButton: Button
     private val ioExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+            val granted = grants[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            if (granted && hasLocationPermission()) {
                 refreshLocationAndWeather()
             } else {
                 statusText.text = getString(R.string.status_no_permission)
@@ -70,6 +79,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        mainHandler.removeCallbacksAndMessages(null)
         ioExecutor.shutdown()
     }
 
@@ -78,9 +88,19 @@ class MainActivity : AppCompatActivity() {
             hasLocationPermission() -> refreshLocationAndWeather()
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
                 statusText.text = getString(R.string.status_no_permission)
-                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                requestPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
             }
-            else -> requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            else -> requestPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
         }
     }
 
@@ -97,6 +117,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshLocationAndWeather() {
+        if (!isLocationEnabled()) {
+            statusText.text = getString(R.string.status_location_disabled)
+            return
+        }
+
         statusText.text = getString(R.string.status_loading)
 
         val cancellationToken = CancellationTokenSource()
@@ -112,17 +137,59 @@ class MainActivity : AppCompatActivity() {
                                 renderLocation(last)
                                 loadWeather(last.latitude, last.longitude)
                             } else {
-                                statusText.text = getString(R.string.status_failed_location)
+                                requestSingleLocationUpdate()
                             }
                         }
                         .addOnFailureListener {
-                            statusText.text = getString(R.string.status_failed_location)
+                            requestSingleLocationUpdate()
                         }
                 }
             }
             .addOnFailureListener {
+                requestSingleLocationUpdate()
+            }
+    }
+
+    private fun requestSingleLocationUpdate() {
+        statusText.text = getString(R.string.status_fetching_fix)
+
+        val request = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 1000L)
+            .setWaitForAccurateLocation(false)
+            .setMinUpdateIntervalMillis(500L)
+            .setMaxUpdates(1)
+            .build()
+
+        val callback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val location = result.lastLocation
+                if (location != null) {
+                    locationClient.removeLocationUpdates(this)
+                    mainHandler.removeCallbacksAndMessages(null)
+                    renderLocation(location)
+                    loadWeather(location.latitude, location.longitude)
+                }
+            }
+        }
+
+        mainHandler.postDelayed({
+            locationClient.removeLocationUpdates(callback)
+            if (statusText.text == getString(R.string.status_fetching_fix)) {
                 statusText.text = getString(R.string.status_failed_location)
             }
+        }, 12000L)
+
+        try {
+            locationClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
+        } catch (_: SecurityException) {
+            mainHandler.removeCallbacksAndMessages(null)
+            statusText.text = getString(R.string.status_no_permission)
+        }
+    }
+
+    private fun isLocationEnabled(): Boolean {
+        val manager = getSystemService(LOCATION_SERVICE) as LocationManager
+        return manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+            manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     private fun renderLocation(location: Location) {
