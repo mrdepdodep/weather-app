@@ -1,5 +1,8 @@
 package com.example.weatherapp
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,11 +13,15 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.google.android.material.snackbar.Snackbar
 import org.json.JSONObject
 import java.net.HttpURLConnection
+import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.URLEncoder
+import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 import java.util.concurrent.ExecutorService
@@ -129,6 +136,10 @@ class MainActivity : AppCompatActivity() {
             showSettingsDialog(force = true)
             return
         }
+        if (!hasInternetConnection()) {
+            notifyError(AppErrorType.NO_INTERNET)
+            return
+        }
 
         statusText.text = getString(R.string.status_loading)
         locationText.text = getString(R.string.location_label, city)
@@ -136,32 +147,38 @@ class MainActivity : AppCompatActivity() {
 
         ioExecutor.execute {
             val geocodeResult = geocodeCity(city)
-            if (geocodeResult == null) {
-                runOnUiThread { statusText.text = getString(R.string.status_city_not_found) }
-                return@execute
+            val geoData = when (geocodeResult) {
+                is GeoLookupResult.Success -> geocodeResult.data
+                is GeoLookupResult.Error -> {
+                    notifyError(geocodeResult.type)
+                    return@execute
+                }
             }
 
             val weatherResult = loadWeather(
-                latitude = geocodeResult.latitude,
-                longitude = geocodeResult.longitude,
+                latitude = geoData.latitude,
+                longitude = geoData.longitude,
                 useFahrenheit = useFahrenheit
             )
 
-            if (weatherResult == null) {
-                runOnUiThread { statusText.text = getString(R.string.status_failed_weather) }
-                return@execute
+            val weatherData = when (weatherResult) {
+                is WeatherLoadResult.Success -> weatherResult.data
+                is WeatherLoadResult.Error -> {
+                    notifyError(weatherResult.type)
+                    return@execute
+                }
             }
 
             val unitSymbol = if (useFahrenheit) "F" else "C"
-            val temp = weatherResult.temperature
-            val weatherCode = weatherResult.weatherCode
-            val wind = weatherResult.windSpeed
+            val temp = weatherData.temperature
+            val weatherCode = weatherData.weatherCode
+            val wind = weatherData.windSpeed
             val tempString = if (temp.isNaN()) "—°$unitSymbol" else String.format(Locale.US, "%.0f°%s", temp, unitSymbol)
             val windString = if (wind.isNaN()) "— m/s" else String.format(Locale.US, "%.1f m/s", wind)
             val condition = mapWeatherCode(weatherCode)
 
             runOnUiThread {
-                locationText.text = getString(R.string.location_label, geocodeResult.displayName)
+                locationText.text = getString(R.string.location_label, geoData.displayName)
                 temperatureText.text = tempString
                 conditionText.text = condition
                 windText.text = windString
@@ -171,7 +188,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun geocodeCity(city: String): GeoResult? {
+    private fun geocodeCity(city: String): GeoLookupResult {
         var connection: HttpURLConnection? = null
         return try {
             val encodedCity = URLEncoder.encode(city, StandardCharsets.UTF_8.toString())
@@ -186,13 +203,14 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (connection.responseCode !in 200..299) {
-                return null
+                return GeoLookupResult.Error(AppErrorType.REQUEST_FAILED)
             }
 
             val body = connection.inputStream.bufferedReader().use { it.readText() }
             val json = JSONObject(body)
-            val results = json.optJSONArray("results") ?: return null
-            if (results.length() == 0) return null
+            val results = json.optJSONArray("results")
+                ?: return GeoLookupResult.Error(AppErrorType.CITY_NOT_FOUND)
+            if (results.length() == 0) return GeoLookupResult.Error(AppErrorType.CITY_NOT_FOUND)
 
             val first = results.getJSONObject(0)
             val name = first.optString("name", city)
@@ -201,18 +219,24 @@ class MainActivity : AppCompatActivity() {
             val latitude = first.optDouble("latitude", Double.NaN)
             val longitude = first.optDouble("longitude", Double.NaN)
             if (latitude.isNaN() || longitude.isNaN()) {
-                null
+                GeoLookupResult.Error(AppErrorType.REQUEST_FAILED)
             } else {
-                GeoResult(displayName = displayName, latitude = latitude, longitude = longitude)
+                GeoLookupResult.Success(
+                    GeoResult(displayName = displayName, latitude = latitude, longitude = longitude)
+                )
             }
+        } catch (_: UnknownHostException) {
+            GeoLookupResult.Error(AppErrorType.NO_INTERNET)
+        } catch (_: SocketTimeoutException) {
+            GeoLookupResult.Error(AppErrorType.REQUEST_TIMEOUT)
         } catch (_: Exception) {
-            null
+            GeoLookupResult.Error(AppErrorType.REQUEST_FAILED)
         } finally {
             connection?.disconnect()
         }
     }
 
-    private fun loadWeather(latitude: Double, longitude: Double, useFahrenheit: Boolean): WeatherResult? {
+    private fun loadWeather(latitude: Double, longitude: Double, useFahrenheit: Boolean): WeatherLoadResult {
         var connection: HttpURLConnection? = null
         return try {
             val unitParam = if (useFahrenheit) "fahrenheit" else "celsius"
@@ -229,7 +253,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (connection.responseCode !in 200..299) {
-                return null
+                return WeatherLoadResult.Error(AppErrorType.REQUEST_FAILED)
             }
 
             val body = connection.inputStream.bufferedReader().use { it.readText() }
@@ -239,15 +263,36 @@ class MainActivity : AppCompatActivity() {
             val weatherCode = current.optInt("weather_code", -1)
             val wind = current.optDouble("wind_speed_10m", Double.NaN)
 
-            WeatherResult(
-                temperature = temp,
-                weatherCode = weatherCode,
-                windSpeed = wind
+            WeatherLoadResult.Success(
+                WeatherResult(
+                    temperature = temp,
+                    weatherCode = weatherCode,
+                    windSpeed = wind
+                )
             )
+        } catch (_: UnknownHostException) {
+            WeatherLoadResult.Error(AppErrorType.NO_INTERNET)
+        } catch (_: SocketTimeoutException) {
+            WeatherLoadResult.Error(AppErrorType.REQUEST_TIMEOUT)
         } catch (_: Exception) {
-            null
+            WeatherLoadResult.Error(AppErrorType.REQUEST_FAILED)
         } finally {
             connection?.disconnect()
+        }
+    }
+
+    private fun hasInternetConnection(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    }
+
+    private fun notifyError(type: AppErrorType) {
+        runOnUiThread {
+            statusText.text = getString(type.statusRes)
+            Snackbar.make(rootLayout, getString(type.messageRes), Snackbar.LENGTH_LONG).show()
         }
     }
 
@@ -299,6 +344,35 @@ class MainActivity : AppCompatActivity() {
         val weatherCode: Int,
         val windSpeed: Double
     )
+
+    private sealed interface GeoLookupResult {
+        data class Success(val data: GeoResult) : GeoLookupResult
+        data class Error(val type: AppErrorType) : GeoLookupResult
+    }
+
+    private sealed interface WeatherLoadResult {
+        data class Success(val data: WeatherResult) : WeatherLoadResult
+        data class Error(val type: AppErrorType) : WeatherLoadResult
+    }
+
+    private enum class AppErrorType(@StringRes val statusRes: Int, @StringRes val messageRes: Int) {
+        NO_INTERNET(
+            statusRes = R.string.status_no_internet,
+            messageRes = R.string.error_no_internet
+        ),
+        REQUEST_TIMEOUT(
+            statusRes = R.string.status_request_timeout,
+            messageRes = R.string.error_request_timeout
+        ),
+        REQUEST_FAILED(
+            statusRes = R.string.status_failed_weather,
+            messageRes = R.string.error_request_failed
+        ),
+        CITY_NOT_FOUND(
+            statusRes = R.string.status_city_not_found,
+            messageRes = R.string.error_city_not_found
+        )
+    }
 
     companion object {
         private const val PREFS_NAME = "weather_prefs"
