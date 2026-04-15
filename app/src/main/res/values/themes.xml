@@ -3,9 +3,18 @@
         <item name="colorPrimary">@color/accent_blue</item>
         <item name="colorPrimaryVariant">@color/bg_dark</item>
         <item name="colorOnPrimary">@color/text_primary</item>
+        <item name="colorSurface">@color/card_dark</item>
+        <item name="colorOnSurface">@color/text_primary</item>
         <item name="android:statusBarColor" tools:targetApi="l">@color/bg_dark</item>
         <item name="android:navigationBarColor" tools:targetApi="l">@color/bg_dark</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="alertDialogTheme">@style/Theme.WeatherApp.AlertDialog</item>
+    </style>
+
+    <style name="Theme.WeatherApp.AlertDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="colorSurface">@color/dialog_bg</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorPrimary">@color/accent_blue</item>
     </style>
 </resources>

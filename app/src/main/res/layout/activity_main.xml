@@ -10,76 +10,83 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_weather_cloudy"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:paddingTop="60dp"
-        android:paddingBottom="44dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="40dp">
 
-        <!-- App label -->
+        <!-- Subtle app label -->
         <TextView
             android:id="@+id/titleText"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/title_weather"
-            android:textColor="#94A3B8"
-            android:textSize="11sp"
+            android:textColor="@color/text_muted"
+            android:textSize="10sp"
             android:textAllCaps="true"
-            android:letterSpacing="0.3"
+            android:letterSpacing="0.25"
             android:fontFamily="sans-serif-medium"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/settingsButton" />
+            app:layout_constraintEnd_toStartOf="@id/settingsButton"
+            app:layout_constraintBottom_toBottomOf="@id/settingsButton" />
 
+        <!-- Settings button — glass circle -->
         <ImageButton
             android:id="@+id/settingsButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@android:color/transparent"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_settings_btn"
             android:contentDescription="@string/settings_title"
-            android:padding="8dp"
+            android:padding="10dp"
             android:src="@android:drawable/ic_menu_manage"
-            android:tint="#94A3B8"
+            android:tint="@color/accent_blue"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/titleText"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Location coordinates -->
+        <!-- Location pill chip — centered -->
         <TextView
             android:id="@+id/locationText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="28dp"
             android:text="@string/location_placeholder"
-            android:textColor="#64748B"
+            android:textColor="@color/text_secondary"
             android:textSize="13sp"
-            android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/titleText"
+            android:fontFamily="sans-serif-medium"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="@drawable/bg_location_chip"
+            app:layout_constraintTop_toBottomOf="@id/settingsButton"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Weather emoji icon -->
+        <!-- Weather emoji — hero icon -->
         <TextView
             android:id="@+id/weatherIconText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="44dp"
+            android:layout_marginTop="32dp"
             android:text="⛅"
-            android:textSize="96sp"
+            android:textSize="100sp"
             android:gravity="center"
             app:layout_constraintTop_toBottomOf="@id/locationText"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Temperature (large) -->
+        <!-- Temperature — massive thin display -->
         <TextView
             android:id="@+id/temperatureText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="0dp"
             android:text="—°"
-            android:textColor="#F8FAFC"
-            android:textSize="88sp"
+            android:textColor="@color/text_primary"
+            android:textSize="96sp"
             android:fontFamily="sans-serif-thin"
+            android:letterSpacing="-0.02"
             android:gravity="center"
             app:layout_constraintTop_toBottomOf="@id/weatherIconText"
             app:layout_constraintStart_toStartOf="parent"
@@ -90,11 +97,12 @@
             android:id="@+id/conditionText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="4dp"
             android:text="@string/weather_placeholder"
-            android:textColor="#94A3B8"
-            android:textSize="20sp"
+            android:textColor="@color/text_secondary"
+            android:textSize="18sp"
             android:fontFamily="sans-serif-light"
+            android:letterSpacing="0.05"
             android:gravity="center"
             app:layout_constraintTop_toBottomOf="@id/temperatureText"
             app:layout_constraintStart_toStartOf="parent"
@@ -105,7 +113,7 @@
             android:id="@+id/statsRow"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="44dp"
+            android:layout_marginTop="40dp"
             android:orientation="horizontal"
             app:layout_constraintTop_toBottomOf="@id/conditionText"
             app:layout_constraintStart_toStartOf="parent"
@@ -125,10 +133,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/wind_label"
-                    android:textColor="#475569"
+                    android:textColor="@color/text_muted"
                     android:textSize="10sp"
                     android:textAllCaps="true"
-                    android:letterSpacing="0.15"
+                    android:letterSpacing="0.2"
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
@@ -137,7 +145,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="— m/s"
-                    android:textColor="#F8FAFC"
+                    android:textColor="@color/text_primary"
                     android:textSize="24sp"
                     android:fontFamily="sans-serif-medium" />
 
@@ -146,7 +154,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Wind Speed"
-                    android:textColor="#475569"
+                    android:textColor="@color/text_muted"
                     android:textSize="11sp" />
 
             </LinearLayout>
@@ -165,10 +173,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/status_label"
-                    android:textColor="#475569"
+                    android:textColor="@color/text_muted"
                     android:textSize="10sp"
                     android:textAllCaps="true"
-                    android:letterSpacing="0.15"
+                    android:letterSpacing="0.2"
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
@@ -177,7 +185,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="@string/status_waiting"
-                    android:textColor="#F8FAFC"
+                    android:textColor="@color/text_primary"
                     android:textSize="13sp"
                     android:fontFamily="sans-serif-medium"
                     android:minLines="2" />
@@ -186,17 +194,17 @@
 
         </LinearLayout>
 
-        <!-- Refresh button -->
+        <!-- Refresh button — glowing outlined pill -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/refreshButton"
             android:layout_width="0dp"
             android:layout_height="56dp"
-            android:layout_marginTop="36dp"
+            android:layout_marginTop="28dp"
             android:text="@string/refresh"
-            android:textColor="#F8FAFC"
+            android:textColor="@color/accent_blue"
             android:textSize="15sp"
             android:textAllCaps="false"
-            android:letterSpacing="0.04"
+            android:letterSpacing="0.06"
             android:fontFamily="sans-serif-medium"
             app:backgroundTint="@color/card_dark"
             app:strokeColor="@color/accent_blue"

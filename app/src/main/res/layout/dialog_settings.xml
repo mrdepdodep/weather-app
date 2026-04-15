@@ -1,51 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:background="@color/dialog_bg"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="16dp">
 
+    <!-- City section label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CITY"
+        android:textColor="@color/text_muted"
+        android:textSize="10sp"
+        android:textAllCaps="true"
+        android:letterSpacing="0.2"
+        android:fontFamily="sans-serif-medium" />
+
+    <!-- City input field -->
     <EditText
         android:id="@+id/cityInput"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
+        android:layout_marginTop="8dp"
         android:hint="@string/settings_city_hint"
+        android:hintTextColor="@color/text_muted"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
         android:inputType="text|textCapWords"
         android:maxLines="1"
-        android:padding="12dp" />
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="@drawable/bg_settings_field"
+        android:fontFamily="sans-serif" />
 
+    <!-- Temperature unit section label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="TEMPERATURE UNIT"
+        android:textColor="@color/text_muted"
+        android:textSize="10sp"
+        android:textAllCaps="true"
+        android:letterSpacing="0.2"
+        android:fontFamily="sans-serif-medium" />
+
+    <!-- Unit radio group -->
     <RadioGroup
         android:id="@+id/unitGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_settings_field"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
         android:orientation="vertical">
 
         <RadioButton
             android:id="@+id/unitCelsius"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/unit_celsius" />
+            android:text="@string/unit_celsius"
+            android:textColor="@color/text_secondary"
+            android:buttonTint="@color/accent_blue"
+            android:padding="8dp"
+            android:fontFamily="sans-serif" />
 
         <RadioButton
             android:id="@+id/unitFahrenheit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/unit_fahrenheit" />
+            android:text="@string/unit_fahrenheit"
+            android:textColor="@color/text_secondary"
+            android:buttonTint="@color/accent_blue"
+            android:padding="8dp"
+            android:fontFamily="sans-serif" />
+
     </RadioGroup>
 
-    <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/notificationsSwitch"
+    <!-- Notifications row -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        android:text="@string/settings_notifications_daily" />
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_settings_field"
+        android:paddingStart="16dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/settings_notifications_daily"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/notificationsSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:thumbTint="@color/accent_blue"
+            app:trackTint="#334FC3F7" />
+
+    </LinearLayout>
+
+    <!-- Time picker button -->
     <Button
         android:id="@+id/notificationTimeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
         android:layout_marginTop="10dp"
-        android:text="@string/settings_pick_time" />
+        android:text="@string/settings_pick_time"
+        android:textColor="@color/accent_blue"
+        android:textSize="14sp"
+        android:textAllCaps="false"
+        android:fontFamily="sans-serif-medium"
+        android:background="@drawable/bg_settings_time_btn" />
+
 </LinearLayout>

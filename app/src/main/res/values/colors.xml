@@ -1,11 +1,25 @@
 <resources>
-    <color name="bg_dark">#0A0E1A</color>
-    <color name="card_dark">#1A1F2E</color>
-    <color name="card_border">#2A3448</color>
-    <color name="text_primary">#F8FAFC</color>
+    <!-- Background colors -->
+    <color name="bg_dark">#060A16</color>
+    <color name="bg_secondary">#0D1427</color>
+    <color name="dialog_bg">#0D1427</color>
+
+    <!-- Card colors -->
+    <color name="card_dark">#0F1829</color>
+    <color name="card_elevated">#172035</color>
+    <color name="card_border">#1E3155</color>
+
+    <!-- Text colors -->
+    <color name="text_primary">#EFF6FF</color>
     <color name="text_secondary">#94A3B8</color>
-    <color name="accent_blue">#60A5FA</color>
-    <!-- legacy references kept for theme -->
+    <color name="text_muted">#3F5272</color>
+
+    <!-- Accent colors -->
+    <color name="accent_blue">#4FC3F7</color>
+    <color name="accent_indigo">#818CF8</color>
+    <color name="accent_cyan">#38BDF8</color>
+
+    <!-- Legacy references kept for theme compatibility -->
     <color name="blue_700">#1565C0</color>
     <color name="blue_900">#0D47A1</color>
     <color name="white">#FFFFFF</color>
