@@ -27,6 +27,13 @@
 3. Запусти на емуляторі або фізичному пристрої.
 4. Введи місто та обери одиниці температури при першому запуску.
 
+## Build через GitHub Actions
+
+- Workflow: `.github/workflows/android-build.yml`
+- Запускається на `push` і `pull_request` для `main/master`, а також вручну (`workflow_dispatch`).
+- Кроки CI: встановлення JDK 17 + Android SDK, запуск unit-тестів, збірка `:app:assembleDebug`.
+- Готовий APK зберігається як artifact `app-debug-apk`.
+
 ## Основні файли
 
 - `app/src/main/java/com/example/weatherapp/MainActivity.kt`

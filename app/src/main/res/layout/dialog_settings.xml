@@ -5,28 +5,16 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@color/dialog_bg"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp"
-    android:paddingTop="4dp"
-    android:paddingBottom="16dp">
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
-    <!-- City section label -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="CITY"
-        android:textColor="@color/text_muted"
-        android:textSize="10sp"
-        android:textAllCaps="true"
-        android:letterSpacing="0.2"
-        android:fontFamily="sans-serif-medium" />
-
-    <!-- City input field -->
+    <!-- City input -->
     <EditText
         android:id="@+id/cityInput"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginTop="8dp"
+        android:layout_height="56dp"
         android:hint="@string/settings_city_hint"
         android:textColorHint="@color/text_muted"
         android:textColor="@color/text_primary"
@@ -38,63 +26,68 @@
         android:background="@drawable/bg_settings_field"
         android:fontFamily="sans-serif" />
 
-    <!-- Temperature unit section label -->
+    <!-- Unit label -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="TEMPERATURE UNIT"
+        android:text="UNIT"
         android:textColor="@color/text_muted"
         android:textSize="10sp"
         android:textAllCaps="true"
-        android:letterSpacing="0.2"
+        android:letterSpacing="0.18"
         android:fontFamily="sans-serif-medium" />
 
-    <!-- Unit radio group -->
+    <!-- Unit segmented toggle -->
     <RadioGroup
         android:id="@+id/unitGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/bg_settings_field"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        android:orientation="vertical">
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_unit_toggle"
+        android:padding="4dp">
 
         <RadioButton
             android:id="@+id/unitCelsius"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/unit_celsius"
-            android:textColor="@color/text_secondary"
-            android:buttonTint="@color/accent_blue"
-            android:padding="8dp"
-            android:fontFamily="sans-serif" />
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="°C"
+            android:textColor="@color/selector_unit_text"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            android:buttonTint="@android:color/transparent"
+            android:background="@drawable/selector_unit_bg"
+            android:gravity="center"
+            android:checked="true" />
 
         <RadioButton
             android:id="@+id/unitFahrenheit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/unit_fahrenheit"
-            android:textColor="@color/text_secondary"
-            android:buttonTint="@color/accent_blue"
-            android:padding="8dp"
-            android:fontFamily="sans-serif" />
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="°F"
+            android:textColor="@color/selector_unit_text"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            android:buttonTint="@android:color/transparent"
+            android:background="@drawable/selector_unit_bg"
+            android:gravity="center" />
 
     </RadioGroup>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="#0F1A2E" />
 
     <!-- Notifications row -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/bg_settings_field"
-        android:paddingStart="16dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="14dp"
-        android:paddingBottom="14dp"
+        android:layout_height="56dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
@@ -116,17 +109,24 @@
 
     </LinearLayout>
 
-    <!-- Time picker button -->
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#0F1A2E" />
+
+    <!-- Time picker row -->
     <Button
         android:id="@+id/notificationTimeButton"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="10dp"
+        android:layout_height="56dp"
         android:text="@string/settings_pick_time"
-        android:textColor="@color/accent_blue"
+        android:textColor="@color/text_secondary"
         android:textSize="14sp"
         android:textAllCaps="false"
-        android:fontFamily="sans-serif-medium"
-        android:background="@drawable/bg_settings_time_btn" />
+        android:fontFamily="sans-serif"
+        android:gravity="start|center_vertical"
+        android:paddingStart="0dp"
+        android:background="@android:color/transparent" />
 
 </LinearLayout>

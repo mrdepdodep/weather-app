@@ -2,9 +2,9 @@ name: Android Build
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "master"]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "master"]
   workflow_dispatch:
 
 jobs:
@@ -27,6 +27,7 @@ jobs:
 
       - name: Install Android SDK packages
         run: |
+          yes | sdkmanager --licenses
           sdkmanager --install "platforms;android-34" "build-tools;34.0.0"
 
       - name: Set up Gradle
@@ -34,11 +35,27 @@ jobs:
         with:
           gradle-version: 8.7
 
+      - name: Run unit tests
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew --no-daemon :app:testDebugUnitTest
+          else
+            gradle --no-daemon :app:testDebugUnitTest
+          fi
+
       - name: Build debug APK
-        run: gradle --no-daemon :app:assembleDebug
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew --no-daemon :app:assembleDebug
+          else
+            gradle --no-daemon :app:assembleDebug
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
